@@ -1,8 +1,15 @@
 # src/backfill.py
 import yaml
 from datetime import datetime, timezone, timedelta
-from coingecko import get_market_chart
-from db import get_conn, upsert_prices
+try:
+    from .coingecko import get_market_chart
+    from .db import get_conn, upsert_prices
+except ImportError as exc:
+    if getattr(exc, "name", None) in {"coingecko", "db"}:
+        from coingecko import get_market_chart
+        from db import get_conn, upsert_prices
+    else:
+        raise
 from time import sleep
 
 def load_assets():

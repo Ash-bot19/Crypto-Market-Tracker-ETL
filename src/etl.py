@@ -2,8 +2,15 @@
 import yaml, math
 from datetime import datetime, timezone, date
 from dateutil import tz
-from coingecko import get_markets, get_market_chart
-from db import get_conn, upsert_assets, upsert_prices, upsert_daily
+try:
+    from .coingecko import get_markets, get_market_chart
+    from .db import get_conn, upsert_assets, upsert_prices, upsert_daily
+except ImportError as exc:
+    if getattr(exc, "name", None) in {"coingecko", "db"}:
+        from coingecko import get_markets, get_market_chart
+        from db import get_conn, upsert_assets, upsert_prices, upsert_daily
+    else:
+        raise
 
 IST = tz.gettz("Asia/Kolkata")
 

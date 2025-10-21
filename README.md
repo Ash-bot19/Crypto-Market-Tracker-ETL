@@ -2,12 +2,10 @@
 
 Python ETL that keeps a Supabase (Postgres) instance in sync with hourly price data from CoinGecko. A scheduled GitHub Actions workflow runs the incremental loader each day, and an optional backfill script can hydrate historical prices on demand.
 
-```
-CoinGecko API ──► src/coingecko.py ──► src/etl.py / src/backfill.py ──► src/db.py ──► Supabase (transaction pooler)
-                                       ▲
-                                       │
-                                   coins.yaml
-```
+<div align="center">
+  <img width="600" height="700" alt="crypto" src="https://github.com/user-attachments/assets/946cca86-5cb0-4a56-b843-b42f805015fc" />
+</div>
+
 
 ## Architecture
 - **Incremental loader (`src/etl.py`)** – Reads the asset list from `src/coins.yaml`, fetches current market metadata plus the last 24 h of hourly candles, and upserts into `assets`, `prices`, and `daily_metrics`.

@@ -1,6 +1,31 @@
 # src/db.py
 import os, psycopg2
 from contextlib import contextmanager
+# src/db.py
+import os, socket, psycopg2
+
+def conn_kwargs():
+    host = os.environ["PGHOST"]          # e.g. db.xxxxx.supabase.co
+    port = int(os.environ.get("PGPORT", "5432"))
+    user = os.environ["PGUSER"]
+    password = os.environ["PGPASSWORD"]
+    dbname = os.environ["PGDATABASE"]
+
+    # Resolve IPv4 only (avoids AAAA/IPv6)
+    ipv4 = socket.getaddrinfo(host, port, family=socket.AF_INET)[0][4][0]
+
+    return dict(
+        host=host,           # keep hostname for TLS SNI
+        hostaddr=ipv4,       # actually connect to IPv4
+        port=port,
+        user=user,
+        password=password,
+        dbname=dbname,
+        sslmode="require",
+    )
+
+def get_conn():
+    return psycopg2.connect(**conn_kwargs(), connect_timeout=10)
 
 def conn_kwargs():
     # Prefer a single URL secret when available (Supabase, Heroku, etc.)

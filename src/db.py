@@ -1,45 +1,65 @@
 # src/db.py
-import os, psycopg2
+import os
+import socket
 from contextlib import contextmanager
-# src/db.py
-import os, socket, psycopg2
+from urllib.parse import urlparse
 
-def conn_kwargs():
-    host = os.environ["PGHOST"]          # e.g. db.xxxxx.supabase.co
-    port = int(os.environ.get("PGPORT", "5432"))
-    user = os.environ["PGUSER"]
-    password = os.environ["PGPASSWORD"]
-    dbname = os.environ["PGDATABASE"]
+import psycopg2
+from psycopg2 import extensions
 
-    # Resolve IPv4 only (avoids AAAA/IPv6)
-    ipv4 = socket.getaddrinfo(host, port, family=socket.AF_INET)[0][4][0]
 
-    return dict(
-        host=host,           # keep hostname for TLS SNI
-        hostaddr=ipv4,       # actually connect to IPv4
-        port=port,
-        user=user,
-        password=password,
-        dbname=dbname,
-        sslmode="require",
-    )
+def _ipv4_hostaddr(host):
+    """Resolve the first IPv4 address for a host (skip IPv6-only results)."""
+    if not host:
+        return None
+    try:
+        infos = socket.getaddrinfo(
+            host,
+            None,
+            family=socket.AF_INET,
+            type=socket.SOCK_STREAM,
+        )
+    except socket.gaierror:
+        return None
 
-def get_conn():
-    return psycopg2.connect(**conn_kwargs(), connect_timeout=10)
+    for family, _, _, _, sockaddr in infos:
+        if family == socket.AF_INET and sockaddr:
+            return sockaddr[0]
+    return None
+
+
+def _host_from_dsn(dsn):
+    try:
+        parts = extensions.parse_dsn(dsn)
+        return parts.get("host")
+    except (extensions.ProgrammingError, AttributeError):
+        return urlparse(dsn).hostname
+
 
 def conn_kwargs():
     # Prefer a single URL secret when available (Supabase, Heroku, etc.)
     url = os.getenv("SUPABASE_DATABASE_URL") or os.getenv("DATABASE_URL")
     if url:
-        return {"dsn": url}
+        hostaddr = _ipv4_hostaddr(_host_from_dsn(url))
+        kwargs = {"dsn": url}
+        if hostaddr:
+            kwargs["hostaddr"] = hostaddr
+        return kwargs
+
     # Fallback to discrete secrets (host, db, user, pass, port)
-    return dict(
-        host=os.environ["DB_HOST"],
+    host = os.environ["DB_HOST"]
+    kwargs = dict(
+        host=host,
         dbname=os.environ.get("DB_NAME", "postgres"),
         user=os.environ["DB_USER"],
         password=os.environ["DB_PASSWORD"],
         port=int(os.environ.get("DB_PORT", "5432")),
     )
+    hostaddr = _ipv4_hostaddr(host)
+    if hostaddr:
+        kwargs["hostaddr"] = hostaddr
+    return kwargs
+
 
 @contextmanager
 def get_conn():
@@ -48,6 +68,7 @@ def get_conn():
         yield conn
     finally:
         conn.close()
+
 
 def upsert_assets(conn, rows):
     with conn, conn.cursor() as cur:
@@ -62,6 +83,7 @@ def upsert_assets(conn, rows):
             rows,
         )
 
+
 def upsert_prices(conn, rows):
     with conn, conn.cursor() as cur:
         cur.executemany(
@@ -75,6 +97,7 @@ def upsert_prices(conn, rows):
             """,
             rows,
         )
+
 
 def upsert_daily(conn, rows):
     with conn, conn.cursor() as cur:

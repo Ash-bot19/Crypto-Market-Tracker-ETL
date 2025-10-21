@@ -1,0 +1,12 @@
+# src/coins.yaml
+assets:
+  - bitcoin
+  - ethereum
+  - solana
+  - binancecoin
+  - ripple
+  - cardano
+  - dogecoin
+  - polkadot
+  - avalanche-2
+  - chainlink

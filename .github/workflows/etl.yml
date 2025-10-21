@@ -1,0 +1,34 @@
+# .github/workflows/etl.yml
+name: crypto-etl
+
+on:
+  schedule:
+    - cron: "10 1 * * *"   # 06:40 IST daily (cron is UTC); adjust as you like
+  workflow_dispatch:       # allow manual run
+
+jobs:
+  run-etl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: ETL
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABSE_URL }}
+          # or use discrete secrets:
+          # DB_HOST: ${{ secrets.DB_HOST }}
+          # DB_NAME: ${{ secrets.DB_NAME }}
+          # DB_USER: ${{ secrets.DB_USER }}
+          # DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          # DB_PORT: ${{ secrets.DB_PORT }}
+        run: python -m src.etl

@@ -3,8 +3,8 @@ import os, psycopg2
 from contextlib import contextmanager
 
 def conn_kwargs():
-    # Prefer a single SUPABASE_DATABASE_URL secret: postgres://user:pass@host:6543/postgres
-    url = os.getenv("SUPABASE_DATABASE_URL")
+    # Prefer a single URL secret when available (Supabase, Heroku, etc.)
+    url = os.getenv("SUPABASE_DATABASE_URL") or os.getenv("DATABASE_URL")
     if url:
         return {"dsn": url}
     # Fallback to discrete secrets (host, db, user, pass, port)

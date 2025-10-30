@@ -2,9 +2,8 @@
 
 Python ETL that keeps a Supabase (Postgres) instance in sync with hourly price data from CoinGecko. A scheduled GitHub Actions workflow runs the incremental loader each day, and an optional backfill script can hydrate historical prices on demand.
 
-<div align="center">
-  <img width="600" height="700" alt="crypto" src="https://github.com/user-attachments/assets/946cca86-5cb0-4a56-b843-b42f805015fc" />
-</div>
+</div><img width="500" height="300" alt="Crypto_ETL" src="https://github.com/user-attachments/assets/34719813-53f8-4fde-8141-339c5ccf8af2" />
+
 
 
 ## Architecture

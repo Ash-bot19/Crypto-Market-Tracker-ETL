@@ -72,3 +72,7 @@ Modify `src/coins.yaml` to change the tracked asset universe (IDs must match Coi
 ## Next Steps
 - Add an authenticated CoinGecko/demo API integration if/when credentials become available.
 - Extend the workflow with validation queries or alerting once the pipeline is running in production.
+
+## 🚀 Launch the Live Dashboard
+
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://crypto-market-tracker-etl-t6cymd2ftxylanudhqjlkv.streamlit.app/)
